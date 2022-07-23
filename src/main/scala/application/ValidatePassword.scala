@@ -12,9 +12,10 @@ sealed trait ValidatePassword:
   def validate(password: Password): AllErrorsOr[Password]
 
 object ValidatePassword:
-  private[this] val minimumLength = 8
-  private[this] val capitalLetterPattern = raw".*[A-Z]+.*".r
-  private[this] val lowercaseLetterPattern = raw".*[a-z]+.*".r
+  val minimumLength = 8
+
+  private[this] val upperCaseLetterPattern = raw".*[A-Z]+.*".r
+  private[this] val lowerCaseLetterPattern = raw".*[a-z]+.*".r
   private[this] val anyNumberPattern = raw".*[0-9]+.*".r
   private[this] val underscorePattern = raw".*_+.*".r
 
@@ -22,13 +23,13 @@ object ValidatePassword:
     if password.value.length > minimumLength then password.validNec
     else PasswordHasMinimumLength(minimumLength).invalidNec
 
-  private[this] def containsAtLeastOneCapitalLetter(password: Password): AllErrorsOr[Password] =
-    if capitalLetterPattern.matches(password.value) then password.validNec
-    else PasswordContainsAtLeastOneCapitalLetter.invalidNec
+  private[this] def containsAtLeastOneUppercaseLetter(password: Password): AllErrorsOr[Password] =
+    if upperCaseLetterPattern.matches(password.value) then password.validNec
+    else PasswordContainsAtLeastOneUpperCaseLetter.invalidNec
 
   private[this] def containsAtLeastOneLowercaseLetter(password: Password): AllErrorsOr[Password] =
-    if lowercaseLetterPattern.matches(password.value) then password.validNec
-    else PasswordContainsAtLeastOneLowercaseLetter.invalidNec
+    if lowerCaseLetterPattern.matches(password.value) then password.validNec
+    else PasswordContainsAtLeastOneLowerCaseLetter.invalidNec
 
   private[this] def containsAnyNumber(password: Password): AllErrorsOr[Password] =
     if anyNumberPattern.matches(password.value) then password.validNec
@@ -42,7 +43,7 @@ object ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
       (
         hasMinimumLength(password),
-        containsAtLeastOneCapitalLetter(password),
+        containsAtLeastOneUppercaseLetter(password),
         containsAtLeastOneLowercaseLetter(password),
         containsAnyNumber(password),
         containsAnUnderscore(password),

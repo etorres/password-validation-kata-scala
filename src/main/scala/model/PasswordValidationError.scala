@@ -18,10 +18,10 @@ object PasswordValidationError:
   final case class PasswordHasMinimumLength(minimumLength: Int)
       extends PasswordValidationError(s"Has more than $minimumLength characters")
 
-  case object PasswordContainsAtLeastOneCapitalLetter
+  case object PasswordContainsAtLeastOneUpperCaseLetter
       extends PasswordValidationError("Contains at least one capital letter")
 
-  case object PasswordContainsAtLeastOneLowercaseLetter
+  case object PasswordContainsAtLeastOneLowerCaseLetter
       extends PasswordValidationError("Contains at least one lowercase letter")
 
   case object PasswordContainsAnyNumber extends PasswordValidationError("Contains any number")

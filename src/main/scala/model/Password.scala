@@ -6,7 +6,7 @@ import model.PasswordValidationError.PasswordIsNotEmpty
 opaque type Password = String
 
 object Password:
-  def unsafeFrom(value: String): Password = value
+  def unsafeFrom(value: String | Null): Password = value.nn
 
   def from(value: String): Either[PasswordValidationError, Password] = if value.nonEmpty then
     Right(unsafeFrom(value))
