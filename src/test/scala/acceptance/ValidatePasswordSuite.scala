@@ -1,12 +1,7 @@
 package es.eriktorr.password_validation
 package acceptance
 
-import acceptance.ValidatePasswordSuite.{
-  firstRuleSetTestCaseGen,
-  secondRuleSetTestCaseGen,
-  thirdRuleSetTestCaseGen,
-  TestCase,
-}
+import acceptance.ValidatePasswordSuite.*
 import application.ValidatePassword
 import application.ValidatePassword.firstRuleSet
 import model.PasswordValidation.AllErrorsOr
@@ -43,6 +38,12 @@ final class ValidatePasswordSuite extends ScalaCheckSuite:
   property("it should validate a password with the third rule set") {
     forAll(thirdRuleSetTestCaseGen) { testCase =>
       checkWith(ValidatePassword.withThirdRuleSet, testCase)
+    }
+  }
+
+  property("it should validate a password with the fourth rule set") {
+    forAll(fourthRuleSetTestCaseGen) { testCase =>
+      checkWith(ValidatePassword.withFourthRuleSet, testCase)
     }
   }
 
@@ -93,6 +94,17 @@ object ValidatePasswordSuite:
       val randomizedString = random.shuffle(mandatoryChars ++ additionalChars).mkString
       Password.unsafeFrom(randomizedString)
 
+  private[this] val fourthRuleSetValidPasswordGen: Gen[Password] =
+    for
+      upperCaseLetter <- Gen.alphaUpperChar
+      number <- Gen.numChar
+      mandatoryChars = List(upperCaseLetter, number, '_')
+      additionalCharsN <- Gen.choose(6, 12)
+      additionalChars <- validCharsGen(additionalCharsN)
+    yield
+      val randomizedString = random.shuffle(mandatoryChars ++ additionalChars).mkString
+      Password.unsafeFrom(randomizedString)
+
   private[this] val firstRuleSetNoMinimumLengthPasswordGen: Gen[Password] = for
     lowerCaseLetter <- Gen.alphaLowerChar
     upperCaseLetter <- Gen.alphaUpperChar
@@ -115,6 +127,14 @@ object ValidatePasswordSuite:
     lowerCaseLetter <- Gen.alphaLowerChar
     upperCaseLetter <- Gen.alphaUpperChar
     mandatoryChars = List(lowerCaseLetter, upperCaseLetter, '_')
+  yield
+    val randomizedString = random.shuffle(mandatoryChars).mkString
+    Password.unsafeFrom(randomizedString)
+
+  private[this] val fourthRuleSetNoMinimumLengthPasswordGen: Gen[Password] = for
+    upperCaseLetter <- Gen.alphaUpperChar
+    number <- Gen.numChar
+    mandatoryChars = List(upperCaseLetter, number, '_')
   yield
     val randomizedString = random.shuffle(mandatoryChars).mkString
     Password.unsafeFrom(randomizedString)
@@ -254,6 +274,43 @@ object ValidatePasswordSuite:
                 PasswordHasMinimumLength(minimumLength),
                 PasswordContainsAtLeastOneUpperCaseLetter,
                 PasswordContainsAtLeastOneLowerCaseLetter,
+                PasswordContainsAnUnderscore,
+              ),
+            ),
+          ),
+        ),
+        1 -> validPasswordGen.map(x => (x, x.validNec)),
+      )
+    yield TestCase(
+      password,
+      expectedValidation,
+      expectedValidation match
+        case Validated.Valid(_) => true
+        case Invalid(_) => false,
+    )
+
+  private val fourthRuleSetTestCaseGen: Gen[TestCase] =
+    val minimumLength = 8
+    val validPasswordGen = fourthRuleSetValidPasswordGen
+    for (password, expectedValidation) <- Gen.frequency(
+        1 -> fourthRuleSetNoMinimumLengthPasswordGen.map(
+          (_, PasswordHasMinimumLength(minimumLength).invalidNec),
+        ),
+        1 -> noUpperCasePasswordGen(validPasswordGen).map(
+          (_, PasswordContainsAtLeastOneUpperCaseLetter.invalidNec),
+        ),
+        1 -> noNumberPasswordGen(validPasswordGen).map((_, PasswordContainsAnyNumber.invalidNec)),
+        1 -> noUnderscorePasswordGen(validPasswordGen).map(
+          (_, PasswordContainsAnUnderscore.invalidNec),
+        ),
+        1 -> allErrorsGen(minimumLength - 1).map(
+          (
+            _,
+            Invalid(
+              NonEmptyChain(
+                PasswordHasMinimumLength(minimumLength),
+                PasswordContainsAtLeastOneUpperCaseLetter,
+                PasswordContainsAnyNumber,
                 PasswordContainsAnUnderscore,
               ),
             ),

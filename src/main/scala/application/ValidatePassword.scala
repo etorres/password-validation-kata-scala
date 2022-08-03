@@ -91,6 +91,13 @@ object ValidatePassword:
     containsAnUnderscore,
   )
 
+  private[this] val fourthRuleSet = NonEmptyList.of(
+    hasMinimumLength(8),
+    containsAtLeastOneUppercaseLetter,
+    containsAnyNumber,
+    containsAnUnderscore,
+  )
+
   def withFirstRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
       validateWith(password, firstRuleSet)
@@ -102,3 +109,7 @@ object ValidatePassword:
   def withThirdRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
       validateWith(password, thirdRuleSet)
+
+  def withFourthRuleSet: ValidatePassword = new ValidatePassword:
+    override def validate(password: Password): AllErrorsOr[Password] =
+      validateWith(password, fourthRuleSet)
