@@ -24,32 +24,31 @@ sealed trait ValidatePassword:
     case Validated.Invalid(errors) => errors.length == 1
 
 object ValidatePassword:
-  private[this] val upperCaseLetterPattern = raw".*[A-Z]+.*".r
-  private[this] val lowerCaseLetterPattern = raw".*[a-z]+.*".r
-  private[this] val anyNumberPattern = raw".*[0-9]+.*".r
-  private[this] val underscorePattern = raw".*_+.*".r
-
   private[this] def hasMinimumLength(minimumLength: Int): PasswordConstraint[Password] =
     (password: Password) =>
-      if password.value.length > minimumLength then password.validNec
+      if password.value.length >= minimumLength then password.validNec
       else PasswordHasMinimumLength(minimumLength).invalidNec
 
   private[this] val containsAtLeastOneUppercaseLetter: PasswordConstraint[Password] =
     (password: Password) =>
+      val upperCaseLetterPattern = raw".*[A-Z]+.*".r
       if upperCaseLetterPattern.matches(password.value) then password.validNec
       else PasswordContainsAtLeastOneUpperCaseLetter.invalidNec
 
   private[this] val containsAtLeastOneLowercaseLetter: PasswordConstraint[Password] =
     (password: Password) =>
+      val lowerCaseLetterPattern = raw".*[a-z]+.*".r
       if lowerCaseLetterPattern.matches(password.value) then password.validNec
       else PasswordContainsAtLeastOneLowerCaseLetter.invalidNec
 
   private[this] val containsAnyNumber: PasswordConstraint[Password] = (password: Password) =>
+    val anyNumberPattern = raw".*[0-9]+.*".r
     if anyNumberPattern.matches(password.value) then password.validNec
     else PasswordContainsAnyNumber.invalidNec
 
   private[this] val containsAnUnderscore: PasswordConstraint[Password] =
     (password: Password) =>
+      val underscorePattern = raw".*_+.*".r
       if underscorePattern.matches(password.value) then password.validNec
       else PasswordContainsAnUnderscore.invalidNec
 
@@ -73,47 +72,51 @@ object ValidatePassword:
 
     combineAll(constraints.tail, constraints.head(password))
 
-  private[this] val firstRuleSet = NonEmptyList.of(
-    hasMinimumLength(8),
-    containsAtLeastOneUppercaseLetter,
-    containsAtLeastOneLowercaseLetter,
-    containsAnyNumber,
-    containsAnUnderscore,
-  )
-
-  private[this] val secondRuleSet = NonEmptyList.of(
-    hasMinimumLength(6),
-    containsAtLeastOneUppercaseLetter,
-    containsAtLeastOneLowercaseLetter,
-    containsAnyNumber,
-  )
-
-  private[this] val thirdRuleSet = NonEmptyList.of(
-    hasMinimumLength(16),
-    containsAtLeastOneUppercaseLetter,
-    containsAtLeastOneLowercaseLetter,
-    containsAnUnderscore,
-  )
-
-  private[this] val fourthRuleSet = NonEmptyList.of(
-    hasMinimumLength(8),
-    containsAtLeastOneUppercaseLetter,
-    containsAnyNumber,
-    containsAnUnderscore,
-  )
-
   def withFirstRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
-      validateWith(password, firstRuleSet)
+      validateWith(
+        password,
+        NonEmptyList.of(
+          hasMinimumLength(9),
+          containsAtLeastOneUppercaseLetter,
+          containsAtLeastOneLowercaseLetter,
+          containsAnyNumber,
+          containsAnUnderscore,
+        ),
+      )
 
   def withSecondRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
-      validateWith(password, secondRuleSet)
+      validateWith(
+        password,
+        NonEmptyList.of(
+          hasMinimumLength(7),
+          containsAtLeastOneUppercaseLetter,
+          containsAtLeastOneLowercaseLetter,
+          containsAnyNumber,
+        ),
+      )
 
   def withThirdRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
-      validateWith(password, thirdRuleSet)
+      validateWith(
+        password,
+        NonEmptyList.of(
+          hasMinimumLength(17),
+          containsAtLeastOneUppercaseLetter,
+          containsAtLeastOneLowercaseLetter,
+          containsAnUnderscore,
+        ),
+      )
 
   def withFourthRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
-      validateWith(password, fourthRuleSet)
+      validateWith(
+        password,
+        NonEmptyList.of(
+          hasMinimumLength(9),
+          containsAtLeastOneUppercaseLetter,
+          containsAnyNumber,
+          containsAnUnderscore,
+        ),
+      )
