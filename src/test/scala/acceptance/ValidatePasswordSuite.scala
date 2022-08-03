@@ -130,7 +130,7 @@ object ValidatePasswordSuite:
         1 -> noUnderscorePasswordGen(validPasswordGen(mandatoryCharsGens, minimumLength)).map(
           (_, PasswordContainsAnUnderscore.invalidNec),
         ),
-        1 -> allErrorsGen(minimumLength - 1).map(
+        1 -> allErrorsGen(minimumLength).map(
           (
             _,
             Invalid(
@@ -173,7 +173,7 @@ object ValidatePasswordSuite:
         ),
         1 -> noNumberPasswordGen(validPasswordGen(mandatoryCharsGens, minimumLength))
           .map((_, PasswordContainsAnyNumber.invalidNec)),
-        1 -> allErrorsGen(minimumLength - 1).map(
+        1 -> allErrorsGen(minimumLength).map(
           (
             _,
             Invalid(
@@ -216,7 +216,7 @@ object ValidatePasswordSuite:
         1 -> noUnderscorePasswordGen(validPasswordGen(mandatoryCharsGens, minimumLength)).map(
           (_, PasswordContainsAnUnderscore.invalidNec),
         ),
-        1 -> allErrorsGen(minimumLength - 1).map(
+        1 -> allErrorsGen(minimumLength).map(
           (
             _,
             Invalid(
@@ -258,7 +258,7 @@ object ValidatePasswordSuite:
         1 -> noUnderscorePasswordGen(validPasswordGen(mandatoryCharsGens, minimumLength)).map(
           (_, PasswordContainsAnUnderscore.invalidNec),
         ),
-        1 -> allErrorsGen(minimumLength - 1).map(
+        1 -> allErrorsGen(minimumLength).map(
           (
             _,
             Invalid(
