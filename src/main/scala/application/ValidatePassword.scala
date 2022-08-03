@@ -19,6 +19,10 @@ sealed trait ValidatePassword:
     case Validated.Valid(_) => true
     case Validated.Invalid(_) => false
 
+  def isValidRelaxed(password: Password): Boolean = validate(password) match
+    case Validated.Valid(_) => true
+    case Validated.Invalid(errors) => errors.length == 1
+
 object ValidatePassword:
   private[this] val upperCaseLetterPattern = raw".*[A-Z]+.*".r
   private[this] val lowerCaseLetterPattern = raw".*[a-z]+.*".r

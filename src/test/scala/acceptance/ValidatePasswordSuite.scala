@@ -19,9 +19,9 @@ final class ValidatePasswordSuite extends ScalaCheckSuite:
 
   private[this] def checkWith(systemUnderTest: ValidatePassword, testCase: TestCase) =
     systemUnderTest.validate(testCase.password) == testCase.expectedValidation && systemUnderTest
-      .isValid(
-        testCase.password,
-      ) == testCase.expectedIsValid
+      .isValid(testCase.password) == testCase.expectedIsValid && systemUnderTest.isValidRelaxed(
+      testCase.password,
+    ) == testCase.expectedIsValidRelaxed
 
   property("it should validate a password with the first rule set") {
     forAll(firstRuleSetTestCaseGen) { testCase =>
@@ -170,6 +170,7 @@ object ValidatePasswordSuite:
       password: Password,
       expectedValidation: AllErrorsOr[Password],
       expectedIsValid: Boolean,
+      expectedIsValidRelaxed: Boolean,
   )
 
   private val firstRuleSetTestCaseGen: Gen[TestCase] =
@@ -210,7 +211,11 @@ object ValidatePasswordSuite:
       expectedValidation,
       expectedValidation match
         case Validated.Valid(_) => true
-        case Invalid(_) => false,
+        case Invalid(_) => false
+      ,
+      expectedValidation match
+        case Validated.Valid(_) => true
+        case Validated.Invalid(errors) => errors.length == 1,
     )
 
   private val secondRuleSetTestCaseGen: Gen[TestCase] =
@@ -247,7 +252,11 @@ object ValidatePasswordSuite:
       expectedValidation,
       expectedValidation match
         case Validated.Valid(_) => true
-        case Invalid(_) => false,
+        case Invalid(_) => false
+      ,
+      expectedValidation match
+        case Validated.Valid(_) => true
+        case Validated.Invalid(errors) => errors.length == 1,
     )
 
   private val thirdRuleSetTestCaseGen: Gen[TestCase] =
@@ -286,7 +295,11 @@ object ValidatePasswordSuite:
       expectedValidation,
       expectedValidation match
         case Validated.Valid(_) => true
-        case Invalid(_) => false,
+        case Invalid(_) => false
+      ,
+      expectedValidation match
+        case Validated.Valid(_) => true
+        case Validated.Invalid(errors) => errors.length == 1,
     )
 
   private val fourthRuleSetTestCaseGen: Gen[TestCase] =
@@ -323,5 +336,9 @@ object ValidatePasswordSuite:
       expectedValidation,
       expectedValidation match
         case Validated.Valid(_) => true
-        case Invalid(_) => false,
+        case Invalid(_) => false
+      ,
+      expectedValidation match
+        case Validated.Valid(_) => true
+        case Validated.Invalid(errors) => errors.length == 1,
     )
