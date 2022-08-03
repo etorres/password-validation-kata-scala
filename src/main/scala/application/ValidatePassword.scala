@@ -6,7 +6,7 @@ import model.PasswordValidationError.*
 import model.{Password, PasswordValidation, PasswordValidationError}
 
 import cats.Semigroup
-import cats.data.{NonEmptyList, ValidatedNec}
+import cats.data.{NonEmptyList, Validated, ValidatedNec}
 import cats.syntax.all.*
 import es.eriktorr.password_validation
 
@@ -14,6 +14,10 @@ import scala.annotation.tailrec
 
 sealed trait ValidatePassword:
   def validate(password: Password): AllErrorsOr[Password]
+
+  def isValid(password: Password): Boolean = validate(password) match
+    case Validated.Valid(_) => true
+    case Validated.Invalid(_) => false
 
 object ValidatePassword:
   private[this] val upperCaseLetterPattern = raw".*[A-Z]+.*".r
@@ -63,7 +67,7 @@ object ValidatePassword:
         case ::(head, next) =>
           combineAll(next, accumulated.combine(head(password)))
 
-    combineAll(constraints.tail, constraints.head(password)).map(identity)
+    combineAll(constraints.tail, constraints.head(password))
 
   private[this] val firstRuleSet = NonEmptyList.of(
     hasMinimumLength(8),
@@ -73,6 +77,28 @@ object ValidatePassword:
     containsAnUnderscore,
   )
 
+  private[this] val secondRuleSet = NonEmptyList.of(
+    hasMinimumLength(6),
+    containsAtLeastOneUppercaseLetter,
+    containsAtLeastOneLowercaseLetter,
+    containsAnyNumber,
+  )
+
+  private[this] val thirdRuleSet = NonEmptyList.of(
+    hasMinimumLength(16),
+    containsAtLeastOneUppercaseLetter,
+    containsAtLeastOneLowercaseLetter,
+    containsAnUnderscore,
+  )
+
   def withFirstRuleSet: ValidatePassword = new ValidatePassword:
     override def validate(password: Password): AllErrorsOr[Password] =
       validateWith(password, firstRuleSet)
+
+  def withSecondRuleSet: ValidatePassword = new ValidatePassword:
+    override def validate(password: Password): AllErrorsOr[Password] =
+      validateWith(password, secondRuleSet)
+
+  def withThirdRuleSet: ValidatePassword = new ValidatePassword:
+    override def validate(password: Password): AllErrorsOr[Password] =
+      validateWith(password, thirdRuleSet)
