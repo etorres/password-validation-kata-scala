@@ -3,7 +3,7 @@ package acceptance
 
 import acceptance.ValidatePasswordSuite.testCaseGen
 import application.ValidatePassword
-import application.ValidatePassword.minimumLength
+import application.ValidatePassword.firstRuleSet
 import model.Password
 import model.PasswordValidation.AllErrorsOr
 import model.PasswordValidationError.*
@@ -16,9 +16,9 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 
 final class ValidatePasswordSuite extends ScalaCheckSuite:
-  property("it should validate a password") {
+  property("it should validate a password with the first rule set") {
     forAll(testCaseGen) { testCase =>
-      ValidatePassword.impl.validate(testCase.password) == testCase.expected
+      ValidatePassword.withFirstRuleSet.validate(testCase.password) == testCase.expected
     }
   }
 
@@ -90,7 +90,7 @@ object ValidatePasswordSuite:
   private val testCaseGen: Gen[TestCase] =
     for (password, expected) <- Gen.frequency(
         1 -> noMinimumLengthPasswordGen.map(
-          (_, PasswordHasMinimumLength(ValidatePassword.minimumLength).invalidNec),
+          (_, PasswordHasMinimumLength(8).invalidNec),
         ),
         1 -> noUpperCasePasswordGen.map((_, PasswordContainsAtLeastOneUpperCaseLetter.invalidNec)),
         1 -> noLowerCasePasswordGen.map((_, PasswordContainsAtLeastOneLowerCaseLetter.invalidNec)),
@@ -101,7 +101,7 @@ object ValidatePasswordSuite:
             _,
             Invalid(
               NonEmptyChain(
-                PasswordHasMinimumLength(ValidatePassword.minimumLength),
+                PasswordHasMinimumLength(8),
                 PasswordContainsAtLeastOneUpperCaseLetter,
                 PasswordContainsAtLeastOneLowerCaseLetter,
                 PasswordContainsAnyNumber,
