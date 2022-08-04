@@ -82,12 +82,12 @@ object ValidatePasswordSuite:
 
   private[this] def noNumberPasswordGen(validPasswordGen: Gen[Password]): Gen[Password] = for
     password <- validPasswordGen
-    replacement <- Gen.alphaStr
+    replacement <- Gen.alphaChar.map(_.toString)
   yield Password.unsafeFrom(password.value.replaceAll("[0-9]", replacement))
 
   private[this] def noUnderscorePasswordGen(validPasswordGen: Gen[Password]): Gen[Password] = for
     password <- validPasswordGen
-    replacement <- Gen.alphaNumStr
+    replacement <- Gen.alphaNumChar.map(_.toString)
   yield Password.unsafeFrom(password.value.replaceAll("_", replacement))
 
   private[this] def allErrorsGen(minimumLength: Int): Gen[Password] =

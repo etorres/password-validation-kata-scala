@@ -16,14 +16,14 @@ object PasswordValidationError:
   case object PasswordIsNotEmpty extends PasswordValidationError("Cannot be empty")
 
   final case class PasswordHasMinimumLength(minimumLength: Int)
-      extends PasswordValidationError(s"Has more than $minimumLength characters")
+      extends PasswordValidationError(s"Has at least $minimumLength characters")
 
   case object PasswordContainsAtLeastOneUpperCaseLetter
-      extends PasswordValidationError("Contains at least one capital letter")
+      extends PasswordValidationError("Contains a capital letter")
 
   case object PasswordContainsAtLeastOneLowerCaseLetter
-      extends PasswordValidationError("Contains at least one lowercase letter")
+      extends PasswordValidationError("Contains a lowercase letter")
 
-  case object PasswordContainsAnyNumber extends PasswordValidationError("Contains any number")
+  case object PasswordContainsAnyNumber extends PasswordValidationError("Contains a number")
 
   case object PasswordContainsAnUnderscore extends PasswordValidationError("Contains an underscore")

@@ -6,6 +6,6 @@ import cats.data.ValidatedNec
 sealed trait PasswordValidation:
   type AllErrorsOr[A] = ValidatedNec[PasswordValidationError, A]
 
-  type PasswordConstraint[A] = A => AllErrorsOr[A]
+  type ConstraintIn[A] = A => AllErrorsOr[A]
 
 object PasswordValidation extends PasswordValidation

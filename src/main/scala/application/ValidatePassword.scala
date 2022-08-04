@@ -1,7 +1,7 @@
 package es.eriktorr.password_validation
 package application
 
-import model.PasswordValidation.{AllErrorsOr, PasswordConstraint}
+import model.PasswordValidation.{AllErrorsOr, ConstraintIn}
 import model.PasswordValidationError.*
 import model.{Password, PasswordValidation, PasswordValidationError}
 
@@ -24,29 +24,29 @@ sealed trait ValidatePassword:
     case Validated.Invalid(errors) => errors.length == 1
 
 object ValidatePassword:
-  private[this] def hasMinimumLength(minimumLength: Int): PasswordConstraint[Password] =
+  private[this] def hasMinimumLength(minimumLength: Int): ConstraintIn[Password] =
     (password: Password) =>
       if password.value.length >= minimumLength then password.validNec
       else PasswordHasMinimumLength(minimumLength).invalidNec
 
-  private[this] val containsAtLeastOneUppercaseLetter: PasswordConstraint[Password] =
+  private[this] val containsAtLeastOneUppercaseLetter: ConstraintIn[Password] =
     (password: Password) =>
       val upperCaseLetterPattern = raw".*[A-Z]+.*".r
       if upperCaseLetterPattern.matches(password.value) then password.validNec
       else PasswordContainsAtLeastOneUpperCaseLetter.invalidNec
 
-  private[this] val containsAtLeastOneLowercaseLetter: PasswordConstraint[Password] =
+  private[this] val containsAtLeastOneLowercaseLetter: ConstraintIn[Password] =
     (password: Password) =>
       val lowerCaseLetterPattern = raw".*[a-z]+.*".r
       if lowerCaseLetterPattern.matches(password.value) then password.validNec
       else PasswordContainsAtLeastOneLowerCaseLetter.invalidNec
 
-  private[this] val containsAnyNumber: PasswordConstraint[Password] = (password: Password) =>
+  private[this] val containsAnyNumber: ConstraintIn[Password] = (password: Password) =>
     val anyNumberPattern = raw".*[0-9]+.*".r
     if anyNumberPattern.matches(password.value) then password.validNec
     else PasswordContainsAnyNumber.invalidNec
 
-  private[this] val containsAnUnderscore: PasswordConstraint[Password] =
+  private[this] val containsAnUnderscore: ConstraintIn[Password] =
     (password: Password) =>
       val underscorePattern = raw".*_+.*".r
       if underscorePattern.matches(password.value) then password.validNec
@@ -54,7 +54,7 @@ object ValidatePassword:
 
   private[this] def validateWith(
       password: Password,
-      constraints: NonEmptyList[PasswordConstraint[Password]],
+      constraints: NonEmptyList[ConstraintIn[Password]],
   ): AllErrorsOr[Password] =
     implicit val semigroupPassword: Semigroup[Password] = (x: Password, y: Password) =>
       assert(x == y)
@@ -62,7 +62,7 @@ object ValidatePassword:
 
     @tailrec
     def combineAll(
-        constraints: List[PasswordConstraint[Password]],
+        constraints: List[ConstraintIn[Password]],
         accumulated: AllErrorsOr[Password],
     ): AllErrorsOr[Password] =
       constraints match
