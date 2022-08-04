@@ -25,27 +25,13 @@ scalacOptions ++= Seq(
 )
 
 lazy val root = (project in file("."))
-  .enablePlugins(JavaAppPackaging)
   .settings(
     name := "password-validation",
-    Universal / maintainer := "https://eriktorr.es",
-    Compile / mainClass := Some("es.eriktorr.password_validation.PasswordValidationApp"),
     libraryDependencies ++= Seq(
-      "org.apache.logging.log4j" % "log4j-api" % "2.18.0" % Runtime,
-      "org.apache.logging.log4j" % "log4j-core" % "2.18.0" % Runtime,
-      "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.18.0" % Runtime,
       "org.scalameta" %% "munit" % "0.7.29" % Test,
       "org.scalameta" %% "munit-scalacheck" % "0.7.29" % Test,
       "org.typelevel" %% "cats-core" % "2.8.0",
       "org.typelevel" %% "cats-kernel" % "2.8.0",
-      "org.typelevel" %% "cats-effect" % "3.3.14",
-      "org.typelevel" %% "cats-effect-kernel" % "3.3.14",
-      "org.typelevel" %% "cats-effect-std" % "3.3.14",
-      "org.typelevel" %% "log4cats-slf4j" % "2.4.0",
-      "org.typelevel" %% "log4cats-core_sjs1" % "2.4.0",
-      "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
-      "org.typelevel" %% "scalacheck-effect" % "1.0.4" % Test,
-      "org.typelevel" %% "scalacheck-effect-munit" % "1.0.4" % Test,
     ),
     onLoadMessage := {
       s"""Custom tasks:
