@@ -8,5 +8,4 @@ trait Verifiable[A]:
 object Verifiable:
   given Verifiable[AllErrorsOr[Password]] with
     extension (a: AllErrorsOr[Password])
-      def isValidRelaxed: Boolean =
-        a.fold(errors111112323444 => errors111112323444.length == 1, _ => true)
+      def isValidRelaxed: Boolean = a.fold(_.length == 1, _ => true)
