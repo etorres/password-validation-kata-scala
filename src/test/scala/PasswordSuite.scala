@@ -1,7 +1,6 @@
 package es.eriktorr.password_validation
 
 import PasswordSuite.*
-import PasswordValidation.AllErrorsOr
 import PasswordValidationError.*
 import Verifiable.given_Verifiable_AllErrorsOr
 
@@ -108,10 +107,7 @@ object PasswordSuite:
       TestCase(
         password,
         expectedValidation,
-        expectedValidation match
-          case Validated.Valid(_) => true
-          case Validated.Invalid(_) => false
-        ,
+        expectedValidation.isValid,
         expectedValidation match
           case Validated.Valid(_) => true
           case Validated.Invalid(errors) => errors.length == 1,

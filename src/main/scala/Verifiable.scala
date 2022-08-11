@@ -1,7 +1,5 @@
 package es.eriktorr.password_validation
 
-import PasswordValidation.AllErrorsOr
-
 import cats.data.Validated
 
 trait Verifiable[A]:

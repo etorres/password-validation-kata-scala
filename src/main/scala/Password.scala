@@ -1,6 +1,5 @@
 package es.eriktorr.password_validation
 
-import PasswordValidation.{AllErrorsOr, ConstraintIn}
 import PasswordValidationError.*
 
 import cats.Semigroup
