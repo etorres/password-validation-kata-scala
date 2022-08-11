@@ -1,11 +1,9 @@
 package es.eriktorr.password_validation
-package acceptance
 
-import acceptance.PasswordSuite.*
-import model.Password
-import model.PasswordValidation.AllErrorsOr
-import model.PasswordValidationError.*
-import model.Verifiable.given_Verifiable_AllErrorsOr
+import PasswordSuite.*
+import PasswordValidation.AllErrorsOr
+import PasswordValidationError.*
+import Verifiable.given_Verifiable_AllErrorsOr
 
 import cats.data.{NonEmptyChain, Validated}
 import cats.syntax.validated.*

@@ -1,8 +1,7 @@
 package es.eriktorr.password_validation
-package model
 
-import model.PasswordValidation.{AllErrorsOr, ConstraintIn}
-import model.PasswordValidationError.*
+import PasswordValidation.{AllErrorsOr, ConstraintIn}
+import PasswordValidationError.*
 
 import cats.Semigroup
 import cats.data.{NonEmptyList, Validated, ValidatedNec}

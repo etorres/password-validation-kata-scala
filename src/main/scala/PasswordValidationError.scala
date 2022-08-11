@@ -1,5 +1,4 @@
 package es.eriktorr.password_validation
-package model
 
 import scala.util.control.NoStackTrace
 

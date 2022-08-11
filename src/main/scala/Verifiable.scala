@@ -1,7 +1,6 @@
 package es.eriktorr.password_validation
-package model
 
-import model.PasswordValidation.AllErrorsOr
+import PasswordValidation.AllErrorsOr
 
 import cats.data.Validated
 
