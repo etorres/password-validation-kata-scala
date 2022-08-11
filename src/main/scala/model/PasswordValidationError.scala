@@ -13,8 +13,6 @@ sealed abstract class PasswordValidationError(
   override def getMessage: String = message
 
 object PasswordValidationError:
-  case object PasswordIsNotEmpty extends PasswordValidationError("Cannot be empty")
-
   final case class PasswordHasMinimumLength(minimumLength: Int)
       extends PasswordValidationError(s"Has at least $minimumLength characters")
 

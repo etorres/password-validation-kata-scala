@@ -1,13 +1,12 @@
 package es.eriktorr.password_validation
 package acceptance
 
-import acceptance.ValidatePasswordSuite.*
-import application.ValidatePassword
+import acceptance.PasswordSuite.*
+import model.Password
 import model.PasswordValidation.AllErrorsOr
 import model.PasswordValidationError.*
-import model.{Password, PasswordValidation}
+import model.Verifiable.given_Verifiable_AllErrorsOr
 
-import cats.data.Validated.Invalid
 import cats.data.{NonEmptyChain, Validated}
 import cats.syntax.validated.*
 import munit.ScalaCheckSuite
@@ -16,81 +15,80 @@ import org.scalacheck.Prop.forAll
 
 import scala.jdk.CollectionConverters.*
 
-final class ValidatePasswordSuite extends ScalaCheckSuite:
+final class PasswordSuite extends ScalaCheckSuite:
 
   property("it should validate a password with the first rule set") {
     forAll(firstRuleSetTestCaseGen) { testCase =>
-      checkWith(ValidatePassword.withFirstRuleSet, testCase)
+      checkWith(Password.withFirstRuleSetFrom, testCase)
     }
   }
 
   property("it should validate a password with the second rule set") {
     forAll(secondRuleSetTestCaseGen) { testCase =>
-      checkWith(ValidatePassword.withSecondRuleSet, testCase)
+      checkWith(Password.withSecondRuleSetFrom, testCase)
     }
   }
 
   property("it should validate a password with the third rule set") {
     forAll(thirdRuleSetTestCaseGen) { testCase =>
-      checkWith(ValidatePassword.withThirdRuleSet, testCase)
+      checkWith(Password.withThirdRuleSetFrom, testCase)
     }
   }
 
   property("it should validate a password with the fourth rule set") {
     forAll(fourthRuleSetTestCaseGen) { testCase =>
-      checkWith(ValidatePassword.withFourthRuleSet, testCase)
+      checkWith(Password.withFourthRuleSetFrom, testCase)
     }
   }
 
-  private[this] def checkWith(validatePassword: ValidatePassword, testCase: TestCase) =
-    validatePassword.validate(testCase.password) == testCase.expectedValidation && validatePassword
-      .isValid(testCase.password) == testCase.expectedIsValid && validatePassword.isValidRelaxed(
-      testCase.password,
-    ) == testCase.expectedIsValidRelaxed
+  private[this] def checkWith(
+      smartConstructorUnderTest: String => AllErrorsOr[Password],
+      testCase: TestCase,
+  ) =
+    val actualValidation = smartConstructorUnderTest(testCase.password)
+    actualValidation == testCase.expectedValidation
+    && actualValidation.isValid == testCase.expectedIsValid
+    && actualValidation.isValidRelaxed == testCase.expectedIsValidRelaxed
 
-object ValidatePasswordSuite:
+object PasswordSuite:
 
   private[this] val random = scala.util.Random
 
   private[this] def passwordGen(
       mandatoryCharsGens: List[Gen[Char]],
       minimumLength: Int,
-  ): Gen[Password] = for
+  ): Gen[String] = for
     mandatoryChars <- Gen.sequence(mandatoryCharsGens).map(_.asScala.toList)
     additionalCharsN <- Gen.choose(minimumLength - mandatoryChars.length, minimumLength + 10)
     additionalChars <- Gen.containerOfN[List, Char](additionalCharsN, Gen.asciiPrintableChar)
-  yield
-    val randomizedString = random.shuffle(mandatoryChars ++ additionalChars).mkString
-    Password.unsafeFrom(randomizedString)
+  yield random.shuffle(mandatoryChars ++ additionalChars).mkString
 
   private[this] def noMinimumLengthPasswordGen(
       mandatoryCharsGens: List[Gen[Char]],
       minimumLength: Int,
-  ): Gen[Password] =
+  ): Gen[String] =
     for
       mandatoryChars <- Gen.sequence(mandatoryCharsGens).map(_.asScala.toList)
       _ = assert(mandatoryChars.length < minimumLength)
-    yield
-      val randomizedString = random.shuffle(mandatoryChars).mkString
-      Password.unsafeFrom(randomizedString)
+    yield random.shuffle(mandatoryChars).mkString
 
-  private[this] def noUpperCasePasswordGen(validPasswordGen: Gen[Password]): Gen[Password] =
-    validPasswordGen.map(x => Password.unsafeFrom(x.value.toLowerCase))
+  private[this] def noUpperCasePasswordGen(validPasswordGen: Gen[String]): Gen[String] =
+    validPasswordGen.map(_.toLowerCase.nn)
 
-  private[this] def noLowerCasePasswordGen(validPasswordGen: Gen[Password]): Gen[Password] =
-    validPasswordGen.map(x => Password.unsafeFrom(x.value.toUpperCase))
+  private[this] def noLowerCasePasswordGen(validPasswordGen: Gen[String]): Gen[String] =
+    validPasswordGen.map(_.toUpperCase.nn)
 
-  private[this] def noNumberPasswordGen(validPasswordGen: Gen[Password]): Gen[Password] = for
+  private[this] def noNumberPasswordGen(validPasswordGen: Gen[String]): Gen[String] = for
     password <- validPasswordGen
     replacement <- Gen.alphaChar.map(_.toString)
-  yield Password.unsafeFrom(password.value.replaceAll("[0-9]", replacement))
+  yield password.replaceAll("[0-9]", replacement).nn
 
-  private[this] def noUnderscorePasswordGen(validPasswordGen: Gen[Password]): Gen[Password] = for
+  private[this] def noUnderscorePasswordGen(validPasswordGen: Gen[String]): Gen[String] = for
     password <- validPasswordGen
     replacement <- Gen.alphaNumChar.map(_.toString)
-  yield Password.unsafeFrom(password.value.replaceAll("_", replacement))
+  yield password.replaceAll("_", replacement).nn
 
-  private[this] def allErrorsGen(minimumLength: Int): Gen[Password] =
+  private[this] def allErrorsGen(minimumLength: Int): Gen[String] =
     Gen
       .frequency(
         1 -> Gen
@@ -99,23 +97,22 @@ object ValidatePasswordSuite:
           .map(_.mkString),
         1 -> "",
       )
-      .map(Password.unsafeFrom)
 
   final private case class TestCase(
-      password: Password,
+      password: String,
       expectedValidation: AllErrorsOr[Password],
       expectedIsValid: Boolean,
       expectedIsValidRelaxed: Boolean,
   )
 
   private object TestCase:
-    def from(password: Password, expectedValidation: AllErrorsOr[Password]): TestCase =
+    def from(password: String, expectedValidation: AllErrorsOr[Password]): TestCase =
       TestCase(
         password,
         expectedValidation,
         expectedValidation match
           case Validated.Valid(_) => true
-          case Invalid(_) => false
+          case Validated.Invalid(_) => false
         ,
         expectedValidation match
           case Validated.Valid(_) => true
@@ -145,7 +142,7 @@ object ValidatePasswordSuite:
         1 -> allErrorsGen(minimumLength).map(
           (
             _,
-            Invalid(
+            Validated.Invalid(
               NonEmptyChain(
                 PasswordHasMinimumLength(minimumLength),
                 PasswordContainsAtLeastOneUpperCaseLetter,
@@ -156,7 +153,7 @@ object ValidatePasswordSuite:
             ),
           ),
         ),
-        1 -> validPasswordGen.map(x => (x, x.validNec)),
+        1 -> validPasswordGen.map(x => (x, Password.unsafeFrom(x).validNec)),
       )
     yield TestCase.from(password, expectedValidation)
 
@@ -179,7 +176,7 @@ object ValidatePasswordSuite:
         1 -> allErrorsGen(minimumLength).map(
           (
             _,
-            Invalid(
+            Validated.Invalid(
               NonEmptyChain(
                 PasswordHasMinimumLength(minimumLength),
                 PasswordContainsAtLeastOneUpperCaseLetter,
@@ -189,7 +186,7 @@ object ValidatePasswordSuite:
             ),
           ),
         ),
-        1 -> validPasswordGen.map(x => (x, x.validNec)),
+        1 -> validPasswordGen.map(x => (x, Password.unsafeFrom(x).validNec)),
       )
     yield TestCase.from(password, expectedValidation)
 
@@ -213,7 +210,7 @@ object ValidatePasswordSuite:
         1 -> allErrorsGen(minimumLength).map(
           (
             _,
-            Invalid(
+            Validated.Invalid(
               NonEmptyChain(
                 PasswordHasMinimumLength(minimumLength),
                 PasswordContainsAtLeastOneUpperCaseLetter,
@@ -223,7 +220,7 @@ object ValidatePasswordSuite:
             ),
           ),
         ),
-        1 -> validPasswordGen.map(x => (x, x.validNec)),
+        1 -> validPasswordGen.map(x => (x, Password.unsafeFrom(x).validNec)),
       )
     yield TestCase.from(password, expectedValidation)
 
@@ -246,7 +243,7 @@ object ValidatePasswordSuite:
         1 -> allErrorsGen(minimumLength).map(
           (
             _,
-            Invalid(
+            Validated.Invalid(
               NonEmptyChain(
                 PasswordHasMinimumLength(minimumLength),
                 PasswordContainsAtLeastOneUpperCaseLetter,
@@ -256,6 +253,6 @@ object ValidatePasswordSuite:
             ),
           ),
         ),
-        1 -> validPasswordGen.map(x => (x, x.validNec)),
+        1 -> validPasswordGen.map(x => (x, Password.unsafeFrom(x).validNec)),
       )
     yield TestCase.from(password, expectedValidation)
